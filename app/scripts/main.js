@@ -203,7 +203,7 @@ $(document).ready(function() {
       submitHandler: function(form) {
         $.ajax({
           type: "POST",
-          url: "/mail.php",
+          url: "mail.php",
           data: $(form).serialize()
         }).done(function() {
           $.magnificPopup.open({
