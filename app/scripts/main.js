@@ -1,3 +1,89 @@
+(function ($) {
+  var bsMajorVer = 0;
+  var bsMinorVer = 0;
+
+  $.extend(true, $.validator, {
+    prototype: {
+      defaultShowErrors: function () {
+        var _this = this;
+        var bsVersion = $.fn.tooltip.Constructor.VERSION;
+
+        if (bsVersion) {
+          bsVersion = bsVersion.split('.');
+          bsMajorVer = parseInt(bsVersion[0]);
+          bsMinorVer = parseInt(bsVersion[1]);
+        }
+
+        $.each(this.errorList, function (index, value) {
+          if (bsMajorVer === 3 && bsMinorVer >= 3) {
+            var $currentElement = $(value.element);
+            if ($currentElement.data('bs.tooltip') !== undefined) {
+              $currentElement.data('bs.tooltip').options.title = value.message;
+            } else {
+              $currentElement.tooltip(_this.applyTooltipOptions(value.element, value.message));
+            }
+
+            $(value.element).removeClass(_this.settings.validClass)
+            .addClass(_this.settings.errorClass)
+            .tooltip('show');
+          } else {
+            $(value.element).removeClass(_this.settings.validClass)
+            .addClass(_this.settings.errorClass)
+            .tooltip(bsMajorVer === 4 ? 'dispose' : 'destroy')
+            .tooltip(_this.applyTooltipOptions(value.element, value.message))
+            .tooltip('show');
+          }
+
+          if (_this.settings.highlight) {
+            _this.settings.highlight.call(_this, value.element, _this.settings.errorClass, _this.settings.validClass);
+          }
+        });
+
+        $.each(_this.validElements(), function (index, value) {
+          $(value).removeClass(_this.settings.errorClass)
+          .addClass(_this.settings.validClass)
+          .tooltip(bsMajorVer === 4 ? 'dispose' : 'destroy');
+
+          if (_this.settings.unhighlight) {
+            _this.settings.unhighlight.call(_this, value, _this.settings.errorClass, _this.settings.validClass);
+          }
+        });
+      },
+
+      applyTooltipOptions: function (element, message) {
+        var defaults;
+
+        if (bsMajorVer === 4) {
+          defaults = $.fn.tooltip.Constructor.Default;
+        } else if (bsMajorVer === 3) {
+          defaults = $.fn.tooltip.Constructor.DEFAULTS;
+        } else {
+          defaults = $.fn.tooltip.defaults;
+        }
+
+        var options = {
+          animation: $(element).data('animation') || defaults.animation,
+          html: $(element).data('html') || defaults.html,
+          placement: $(element).data('placement') || defaults.placement,
+          selector: $(element).data('selector') || defaults.selector,
+          title: $(element).attr('title') || message,
+          trigger: $.trim('manual ' + ($(element).data('trigger') || '')),
+          delay: $(element).data('delay') || defaults.delay,
+          container: $(element).data('container') || defaults.container,
+        };
+
+        if (this.settings.tooltip_options && this.settings.tooltip_options[element.name]) {
+          $.extend(options, this.settings.tooltip_options[element.name]);
+        }
+        if (this.settings.tooltip_options && this.settings.tooltip_options['_all_']) {
+          $.extend(options, this.settings.tooltip_options['_all_']);
+        }
+        return options;
+      },
+    },
+  });
+}(jQuery));
+
 $(document).ready(function() {
 
   $('.popup-link').magnificPopup({
@@ -83,68 +169,61 @@ $(document).ready(function() {
 
 
   jQuery.extend(jQuery.validator.messages, {
-            required: "Это поля обязательно для заполнения",
-            remote: "Please fix this field.",
-            email: "Пожалуйста введите правильный Email.",
-            url: "Please enter a valid URL.",
-            date: "Please enter a valid date.",
-            dateISO: "Please enter a valid date (ISO).",
-            number: "Please enter a valid number.",
-            digits: "Please enter only digits.",
-            creditcard: "Please enter a valid credit card number.",
-            equalTo: "Please enter the same value again.",
-            accept: "Please enter a value with a valid extension.",
-            maxlength: jQuery.validator.format("Please enter no more than {0} characters."),
-            minlength: jQuery.validator.format("Please enter at least {0} characters."),
-            rangelength: jQuery.validator.format("Please enter a value between {0} and {1} characters long."),
-            range: jQuery.validator.format("Please enter a value between {0} and {1}."),
-            max: jQuery.validator.format("Please enter a value less than or equal to {0}."),
-            min: jQuery.validator.format("Please enter a value greater than or equal to {0}.")
+    required: "Это поля обязательно для заполнения",
+    remote: "Please fix this field.",
+    email: "Пожалуйста введите правильный Email.",
+    url: "Please enter a valid URL.",
+    date: "Please enter a valid date.",
+    dateISO: "Please enter a valid date (ISO).",
+    number: "Please enter a valid number.",
+    digits: "Please enter only digits.",
+    creditcard: "Please enter a valid credit card number.",
+    equalTo: "Please enter the same value again.",
+    accept: "Please enter a value with a valid extension.",
+    maxlength: jQuery.validator.format("Please enter no more than {0} characters."),
+    minlength: jQuery.validator.format("Please enter at least {0} characters."),
+    rangelength: jQuery.validator.format("Please enter a value between {0} and {1} characters long."),
+    range: jQuery.validator.format("Please enter a value between {0} and {1}."),
+    max: jQuery.validator.format("Please enter a value less than or equal to {0}."),
+    min: jQuery.validator.format("Please enter a value greater than or equal to {0}.")
+  });
+
+
+
+  $(".p_phone").mask("+7 (999) 999-99-99");
+
+  $('.js-mail').each(function (index) {
+    $(this).validate({
+      rules: {
+        email: {
+          required: false,
+          email: true
+        }
+      },
+      submitHandler: function(form) {
+        $.ajax({
+          type: "POST",
+          url: "/mail.php",
+          data: $(form).serialize()
+        }).done(function() {
+          $.magnificPopup.open({
+            items: {
+              src: '#submite'
+            },
+            type:'inline',
+            midClick: true
+          });
+          setTimeout(function() {
+            $.magnificPopup.close();
+          }, 3000);
         });
+        return false;
 
 
+      }
+    });
 
-        $(".p_phone").mask("8-999-999-99-99");
-
-        $('js-mail').each(function (index) {
-            $(this).validate({
-                rules: {
-                    email: {
-                        required: false,
-                        email: true
-                    }
-                },
-                submitHandler: function(form) {
-                    // some other code
-                    // maybe disabling submit button
-                    // then:
-                    //E-mail Ajax Send
-
-                        $.ajax({
-                            type: "POST",
-                            url: "/mail.php", //Change
-                            data: $(form).serialize()
-                        }).done(function() {
-                            $.magnificPopup.open({
-                                items: {
-                                    src: '#submit'
-                                },
-                                type:'inline',
-                                midClick: true // Allow opening popup on middle mouse click. Always set it to true if you don't provide alternative source in href.
-                            });
-                            setTimeout(function() {
-                                // Done Functions
-//                                th.trigger("reset");
-                                $.magnificPopup.close();
-                            }, 3000);
-                        });
-                        return false;
-
-
-                }
-            });
-
-        });
+  });
 
 
 });

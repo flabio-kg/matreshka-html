@@ -1,5 +1,83 @@
 'use strict';
 
+(function ($) {
+  var bsMajorVer = 0;
+  var bsMinorVer = 0;
+
+  $.extend(true, $.validator, {
+    prototype: {
+      defaultShowErrors: function defaultShowErrors() {
+        var _this = this;
+        var bsVersion = $.fn.tooltip.Constructor.VERSION;
+
+        if (bsVersion) {
+          bsVersion = bsVersion.split('.');
+          bsMajorVer = parseInt(bsVersion[0]);
+          bsMinorVer = parseInt(bsVersion[1]);
+        }
+
+        $.each(this.errorList, function (index, value) {
+          if (bsMajorVer === 3 && bsMinorVer >= 3) {
+            var $currentElement = $(value.element);
+            if ($currentElement.data('bs.tooltip') !== undefined) {
+              $currentElement.data('bs.tooltip').options.title = value.message;
+            } else {
+              $currentElement.tooltip(_this.applyTooltipOptions(value.element, value.message));
+            }
+
+            $(value.element).removeClass(_this.settings.validClass).addClass(_this.settings.errorClass).tooltip('show');
+          } else {
+            $(value.element).removeClass(_this.settings.validClass).addClass(_this.settings.errorClass).tooltip(bsMajorVer === 4 ? 'dispose' : 'destroy').tooltip(_this.applyTooltipOptions(value.element, value.message)).tooltip('show');
+          }
+
+          if (_this.settings.highlight) {
+            _this.settings.highlight.call(_this, value.element, _this.settings.errorClass, _this.settings.validClass);
+          }
+        });
+
+        $.each(_this.validElements(), function (index, value) {
+          $(value).removeClass(_this.settings.errorClass).addClass(_this.settings.validClass).tooltip(bsMajorVer === 4 ? 'dispose' : 'destroy');
+
+          if (_this.settings.unhighlight) {
+            _this.settings.unhighlight.call(_this, value, _this.settings.errorClass, _this.settings.validClass);
+          }
+        });
+      },
+
+      applyTooltipOptions: function applyTooltipOptions(element, message) {
+        var defaults;
+
+        if (bsMajorVer === 4) {
+          defaults = $.fn.tooltip.Constructor.Default;
+        } else if (bsMajorVer === 3) {
+          defaults = $.fn.tooltip.Constructor.DEFAULTS;
+        } else {
+          defaults = $.fn.tooltip.defaults;
+        }
+
+        var options = {
+          animation: $(element).data('animation') || defaults.animation,
+          html: $(element).data('html') || defaults.html,
+          placement: $(element).data('placement') || defaults.placement,
+          selector: $(element).data('selector') || defaults.selector,
+          title: $(element).attr('title') || message,
+          trigger: $.trim('manual ' + ($(element).data('trigger') || '')),
+          delay: $(element).data('delay') || defaults.delay,
+          container: $(element).data('container') || defaults.container
+        };
+
+        if (this.settings.tooltip_options && this.settings.tooltip_options[element.name]) {
+          $.extend(options, this.settings.tooltip_options[element.name]);
+        }
+        if (this.settings.tooltip_options && this.settings.tooltip_options['_all_']) {
+          $.extend(options, this.settings.tooltip_options['_all_']);
+        }
+        return options;
+      }
+    }
+  });
+})(jQuery);
+
 $(document).ready(function () {
 
   $('.popup-link').magnificPopup({
@@ -95,9 +173,9 @@ $(document).ready(function () {
     min: jQuery.validator.format("Please enter a value greater than or equal to {0}.")
   });
 
-  $(".p_phone").mask("8-999-999-99-99");
+  $(".p_phone").mask("+7 (999) 999-99-99");
 
-  $('js-mail').each(function (index) {
+  $('.js-mail').each(function (index) {
     $(this).validate({
       rules: {
         email: {
@@ -106,26 +184,19 @@ $(document).ready(function () {
         }
       },
       submitHandler: function submitHandler(form) {
-        // some other code
-        // maybe disabling submit button
-        // then:
-        //E-mail Ajax Send
-
         $.ajax({
           type: "POST",
-          url: "/mail.php", //Change
+          url: "/mail.php",
           data: $(form).serialize()
         }).done(function () {
           $.magnificPopup.open({
             items: {
-              src: '#submit'
+              src: '#submite'
             },
             type: 'inline',
-            midClick: true // Allow opening popup on middle mouse click. Always set it to true if you don't provide alternative source in href.
+            midClick: true
           });
           setTimeout(function () {
-            // Done Functions
-            //                                th.trigger("reset");
             $.magnificPopup.close();
           }, 3000);
         });
