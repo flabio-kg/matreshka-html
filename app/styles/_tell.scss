@@ -1,0 +1,65 @@
+.tell {
+  padding-top: 100px;
+  @media (max-width: $screen-sm-max) {
+    padding-top: 30px;
+  }
+
+  &__desc {
+    padding-top: 80px;
+    @media (max-width: $screen-sm-max) {
+      padding-top: 50px;
+    }
+    @media (max-width: $screen-xs-max) {
+      padding-top: 20px;
+    }
+
+    &--items {
+      ul {
+        padding-left: 30px;
+        margin: 0;
+
+        li {
+          position: relative;
+          list-style-type: none;
+          font-size: 18px;
+          font-weight: 300;
+          @media (max-width: $screen-sm-max) {
+            font-size: 16px;
+          }
+          @media (max-width: $screen-xs-max) {
+            padding-bottom: 10px;
+          }
+          &:before {
+            position: absolute;
+            content: '\f10c';
+            font-family: "FontAwesome";
+            font-size: 10px;
+            color: #35ccf4;
+            left: -30px;
+            top: 50%;
+            transform: translateY(-50%);
+          }
+        }
+      }
+    }
+
+    &--item {
+      text-align: center;
+      padding-top: 45px;
+      font-size: 17px;
+      line-height: 30px;
+      font-weight: 300;
+      @media (max-width: $screen-sm-max) {
+        padding-top: 30px;
+      }
+
+      p {
+        margin: 0;
+        padding-bottom: 25px;
+        @media (max-width: $screen-sm-max) {
+          font-size: 16px;
+        }
+      }
+    }
+  }
+}
