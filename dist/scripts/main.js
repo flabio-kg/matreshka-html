@@ -154,7 +154,7 @@ $(document).ready(function () {
   wow.init();
 
   jQuery.extend(jQuery.validator.messages, {
-    required: "Это поля обязательно для заполнения",
+    required: "Это поле обязательно для заполнения",
     remote: "Please fix this field.",
     email: "Пожалуйста введите правильный Email.",
     url: "Please enter a valid URL.",
